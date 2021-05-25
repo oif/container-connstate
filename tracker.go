@@ -2,6 +2,7 @@ package connstate
 
 import (
 	"context"
+	"fmt"
 	"syscall"
 
 	"github.com/vishvananda/netns"
@@ -67,7 +68,8 @@ func (t *Tracker) ListAllConnectionState() ([]ConnectionState, error) {
 	for _, container := range containers {
 		state, err := t.GetConnectionState(container)
 		if err != nil {
-			return nil, err
+			fmt.Printf("Failed to get container(%s) state: %s\n", container.Hostname, err)
+			continue
 		}
 		list = append(list, *state)
 	}
