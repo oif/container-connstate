@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/namespaces"
@@ -66,11 +67,21 @@ func (d *ContainerdDriver) ListContainer(ctx context.Context) ([]Container, erro
 			if err != nil {
 				return nil, err
 			}
-			containerList = append(containerList, Container{
+
+			c := Container{
 				ID:          container.ID,
 				PID:         containerPID,
-				Annotations: nil,
-			})
+				Annotations: make(map[string]string),
+			}
+			if d.opts._ENVCollectionFilter != nil {
+				for _, ENV := range spec.Process.Env {
+					if d.opts._ENVCollectionFilter(ENV) {
+						ENVPair := strings.SplitN(ENV, "=", 2)
+						c.Annotations["ENV_"+ENVPair[0]] = ENVPair[1]
+					}
+				}
+			}
+			containerList = append(containerList, c)
 		}
 	}
 	return containerList, nil
