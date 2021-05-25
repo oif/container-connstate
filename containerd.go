@@ -71,6 +71,7 @@ func (d *ContainerdDriver) ListContainer(ctx context.Context) ([]Container, erro
 			c := Container{
 				ID:          container.ID,
 				PID:         containerPID,
+				Hostname:    spec.Hostname,
 				Annotations: make(map[string]string),
 			}
 			if d.opts._ENVCollectionFilter != nil {

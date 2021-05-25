@@ -7,8 +7,9 @@ import (
 )
 
 type Container struct {
-	ID  string
-	PID int
+	ID       string
+	PID      int
+	Hostname string
 	// Stores extension data
 	Annotations map[string]string
 }
@@ -19,8 +20,9 @@ type ContainerDriver interface {
 
 type ConnectionState struct {
 	Container
-	IPv4 TCPStates
-	IPv6 TCPStates
+	NetNSID string
+	IPv4    TCPStates
+	IPv6    TCPStates
 }
 
 type TCPStates []TCPState

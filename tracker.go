@@ -43,6 +43,7 @@ func (t *Tracker) GetConnectionState(container Container) (*ConnectionState, err
 	defer restore()
 	state := ConnectionState{
 		Container: container,
+		NetNSID:   nsHandler.UniqueId(),
 	}
 	// Load v4
 	state.IPv4, err = diagTCPInfo(syscall.AF_INET)
