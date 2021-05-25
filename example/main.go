@@ -17,15 +17,19 @@ func panicOnError(err error) {
 }
 
 func main() {
-	var containerdSocket string
+	var (
+		containerdSocket string
+		cgroupRoot       string
+	)
 	flag.StringVar(&containerdSocket, "containerd", "/run/containerd/containerd.sock", "containerd daemon socket")
+	flag.StringVar(&cgroupRoot, "cgroup-root", "/sys/fs/cgroup/", "Fixed Cgroup root path")
 	flag.Parse()
 
 	containerdClient, err := containerd.New(containerdSocket)
 	panicOnError(err)
 	driver, err := connstate.NewContainerdDriver(containerdClient, connstate.WithEnvCollectionFilter(func(s string) bool {
 		return strings.HasPrefix(s, "CONTAINER_")
-	}))
+	}), connstate.WithFixedCgroupRoot(cgroupRoot))
 	panicOnError(err)
 	tracker, err := connstate.NewTracker(driver)
 	panicOnError(err)
