@@ -2,6 +2,8 @@ module github.com/oif/container-connstate
 
 go 1.15
 
+replace github.com/vishvananda/netlink => github.com/oif/netlink v1.1.1-0.20210527102705-3ceadf166c80
+
 require (
 	github.com/containerd/containerd v1.5.2
 	github.com/containerd/typeurl v1.0.2

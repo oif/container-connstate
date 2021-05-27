@@ -32,18 +32,17 @@ func diagTCPInfo(family uint8) ([]TCPState, error) {
 
 func diagTCPStatistics(family uint8) (TCPStatistics, error) {
 	// Request TCP diag
-	res, err := netlink.SocketDiagTCPInfo(family)
+	res, err := netlink.SocketDiagTCP(family)
 	if err != nil {
 		return nil, err
 	}
 	statistics := make(TCPStatistics)
-	for _, i := range res {
-		if i.InetDiagMsg != nil {
-			statistics[i.InetDiagMsg.State]++
-		}
+	for _, socket := range res {
+		statistics[socket.State]++
 	}
 	return statistics, nil
 }
+
 // executeInNetns sets execution of the code following this call to the
 // network namespace newNs, then moves the thread back to curNs if open,
 // otherwise to the current netns at the time the function was invoked
