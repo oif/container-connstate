@@ -21,3 +21,7 @@ func executeInNetns(_, _ netns.NsHandle) (func(), error) {
 func diagTCPInfo(_ uint8) ([]TCPState, error) {
 	return nil, ErrNotImplementYet
 }
+
+func diagTCPStatistics(_ uint8) (TCPStatistics, error) {
+	return nil, ErrNotImplementYet
+}

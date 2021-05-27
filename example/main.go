@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"strings"
@@ -34,23 +35,27 @@ func main() {
 	panicOnError(err)
 	tracker, err := connstate.NewTracker(driver, []uint8{syscall.AF_INET, syscall.AF_INET6})
 	panicOnError(err)
-	containers, err := tracker.ListAllConnectionState()
+	containerStates, err := tracker.ListAllConnectionState(context.TODO())
 	panicOnError(err)
-	for _, container := range containers {
-		statistics := make(map[string]uint64)
-		v4Statistics := container.IPv4.StatisticsByState()
-		v6Statistics := container.IPv6.StatisticsByState()
-		for stateFlag, count := range v4Statistics {
-			statistics[connstate.GetReadableState(stateFlag)] += count
-		}
-		for stateFlag, count := range v6Statistics {
-			statistics[connstate.GetReadableState(stateFlag)] += count
-		}
-		fmt.Printf("%s@%d -> %v\n", container.ID, container.PID, statistics)
+	for _, container := range containerStates {
+		fmt.Printf("%s@%d\n", container.ID, container.PID)
 		fmt.Printf("\t Annotations %v\n", container.Annotations)
 		fmt.Println("\t Connections")
 		for _, connection := range append(container.IPv4, container.IPv6...) {
 			fmt.Printf("\t%v %s\n", connection.Socket.ID, connstate.GetReadableState(connection.Socket.State))
 		}
+	}
+
+	containerStatistics, err := tracker.ListAllConnectionStatistics(context.TODO())
+	panicOnError(err)
+	for _, container := range containerStatistics {
+		statistics := make(map[string]uint64)
+		for stateFlag, count := range container.IPv4 {
+			statistics[connstate.GetReadableState(stateFlag)] += count
+		}
+		for stateFlag, count := range container.IPv6 {
+			statistics[connstate.GetReadableState(stateFlag)] += count
+		}
+		fmt.Printf("%s@%d -> %v\n", container.ID, container.PID, statistics)
 	}
 }

@@ -25,10 +25,19 @@ type ConnectionState struct {
 	IPv6    TCPStates
 }
 
+type ConnectionStatistics struct {
+	Container
+	NetNSID string
+	IPv4    TCPStatistics
+	IPv6    TCPStatistics
+}
+
+type TCPStatistics map[uint8]uint64
+
 type TCPStates []TCPState
 
-func (s TCPStates) StatisticsByState() map[uint8]uint64 {
-	mapping := make(map[uint8]uint64)
+func (s TCPStates) StatisticsByState() TCPStatistics {
+	mapping := make(TCPStatistics)
 	for _, state := range s {
 		mapping[state.Socket.State]++
 	}
