@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"strings"
+	"syscall"
 
 	"github.com/oif/container-connstate"
 
@@ -31,7 +32,7 @@ func main() {
 		return strings.HasPrefix(s, "CONTAINER_")
 	}), connstate.WithFixedCgroupRoot(cgroupRoot))
 	panicOnError(err)
-	tracker, err := connstate.NewTracker(driver)
+	tracker, err := connstate.NewTracker(driver, []uint8{syscall.AF_INET, syscall.AF_INET6})
 	panicOnError(err)
 	containers, err := tracker.ListAllConnectionState()
 	panicOnError(err)

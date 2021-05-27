@@ -11,11 +11,13 @@ import (
 type Tracker struct {
 	driver                  ContainerDriver
 	currentNetworkNamespace netns.NsHandle
+	families                []uint8
 }
 
-func NewTracker(driver ContainerDriver) (*Tracker, error) {
+func NewTracker(driver ContainerDriver, families []uint8) (*Tracker, error) {
 	t := &Tracker{
-		driver: driver,
+		driver:   driver,
+		families: families,
 	}
 	// Get current runtime network namespace for restore after enter other ns
 	currentNetNS, err := netns.Get()
@@ -46,15 +48,21 @@ func (t *Tracker) GetConnectionState(container Container) (*ConnectionState, err
 		Container: container,
 		NetNSID:   nsHandler.UniqueId(),
 	}
-	// Load v4
-	state.IPv4, err = diagTCPInfo(syscall.AF_INET)
-	if err != nil {
-		return nil, err
-	}
-	// Load v6
-	state.IPv6, err = diagTCPInfo(syscall.AF_INET6)
-	if err != nil {
-		return nil, err
+	for _, family := range t.families {
+		var receiver *TCPStates
+		switch family {
+		case syscall.AF_INET:
+			receiver = &state.IPv4
+		case syscall.AF_INET6:
+			receiver = &state.IPv6
+		default:
+			return nil, fmt.Errorf("unsupported family %x", family)
+		}
+		result, err := diagTCPInfo(family)
+		if err != nil {
+			return nil, err
+		}
+		*receiver = result
 	}
 	return &state, nil
 }
