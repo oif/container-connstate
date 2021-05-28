@@ -33,6 +33,9 @@ func (t *Tracker) executeInContainerNetworkNamespace(container Container, execut
 	if err != nil {
 		return err
 	}
+	defer func() {
+		_ = nsHandler.Close()
+	}()
 	// enter target netns
 	restore, err := executeInNetns(nsHandler, t.currentNetworkNamespace)
 	if err != nil {
