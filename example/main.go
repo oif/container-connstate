@@ -35,7 +35,7 @@ func main() {
 	panicOnError(err)
 	tracker, err := connstate.NewTracker(driver, []uint8{syscall.AF_INET, syscall.AF_INET6})
 	panicOnError(err)
-	containerStates, err := tracker.ListAllConnectionState(context.TODO())
+	containerStates, err := tracker.ListAllConnectionState(context.TODO(), nil)
 	panicOnError(err)
 	for _, container := range containerStates {
 		fmt.Printf("%s@%d\n", container.ID, container.PID)

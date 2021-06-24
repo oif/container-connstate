@@ -38,13 +38,17 @@ func (t *Tracker) GetConnectionState(container Container) (*ConnectionState, err
 	return &state, nil
 }
 
-func (t *Tracker) ListAllConnectionState(ctx context.Context) ([]ConnectionState, error) {
+func (t *Tracker) ListAllConnectionState(ctx context.Context, filter ContainerFilter) ([]ConnectionState, error) {
 	containers, err := t.driver.ListContainer(ctx)
 	if err != nil {
 		return nil, err
 	}
 	var list []ConnectionState
 	for _, container := range containers {
+		if filter != nil && !filter(container) {
+			// bypass
+			continue
+		}
 		state, err := t.GetConnectionState(container)
 		if err != nil {
 			fmt.Printf("Failed to get container(%s) state: %s\n", container.Hostname, err)

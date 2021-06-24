@@ -47,3 +47,6 @@ func (s TCPStates) StatisticsByState() TCPStatistics {
 type TCPState struct {
 	Socket netlink.Socket
 }
+
+// Return false if wanna bypass
+type ContainerFilter func(Container) (pass bool)

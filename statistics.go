@@ -38,13 +38,17 @@ func (t *Tracker) GetConnectionStatistics(container Container) (*ConnectionStati
 	return &statistics, nil
 }
 
-func (t *Tracker) ListAllConnectionStatistics(ctx context.Context) ([]ConnectionStatistics, error) {
+func (t *Tracker) ListAllConnectionStatistics(ctx context.Context, filter ContainerFilter) ([]ConnectionStatistics, error) {
 	containers, err := t.driver.ListContainer(ctx)
 	if err != nil {
 		return nil, err
 	}
 	var list []ConnectionStatistics
 	for _, container := range containers {
+		if filter != nil && !filter(container) {
+			// bypass
+			continue
+		}
 		statistics, err := t.GetConnectionStatistics(container)
 		if err != nil {
 			fmt.Printf("Failed to get container(%s) statistics: %s\n", container.Hostname, err)
