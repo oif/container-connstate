@@ -46,16 +46,18 @@ func main() {
 		}
 	}
 
-	containerStatistics, err := tracker.ListAllConnectionStatistics(context.TODO())
+	containerStatistics, err := tracker.ListAllConnectionStatistics(context.TODO(), nil)
 	panicOnError(err)
 	for _, container := range containerStatistics {
 		statistics := make(map[string]uint64)
-		for stateFlag, count := range container.IPv4 {
+		for stateFlag, count := range container.IPv4.CountByState() {
 			statistics[connstate.GetReadableState(stateFlag)] += count
 		}
-		for stateFlag, count := range container.IPv6 {
+		for stateFlag, count := range container.IPv6.CountByState() {
 			statistics[connstate.GetReadableState(stateFlag)] += count
 		}
-		fmt.Printf("%s@%d -> %v\n", container.ID, container.PID, statistics)
+		fmt.Printf("%s@%d -> %v(used %d port(s))\n",
+			container.ID, container.PID, statistics,
+			container.IPv4.AllocatedPortCount()+container.IPv6.AllocatedPortCount())
 	}
 }

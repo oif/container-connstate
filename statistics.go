@@ -28,7 +28,7 @@ func (t *Tracker) GetConnectionStatistics(container Container) (*ConnectionStati
 			if err != nil {
 				return err
 			}
-			*receiver = result
+			*receiver = *result
 		}
 		return nil
 	})

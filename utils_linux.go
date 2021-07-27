@@ -30,15 +30,15 @@ func diagTCPInfo(family uint8) ([]TCPState, error) {
 	return list, nil
 }
 
-func diagTCPStatistics(family uint8) (TCPStatistics, error) {
+func diagTCPStatistics(family uint8) (*TCPStatistics, error) {
 	// Request TCP diag
 	res, err := netlink.SocketDiagTCP(family)
 	if err != nil {
 		return nil, err
 	}
-	statistics := make(TCPStatistics)
+	statistics := NewTCPStatistics()
 	for _, socket := range res {
-		statistics[socket.State]++
+		statistics.Record(socket)
 	}
 	return statistics, nil
 }
