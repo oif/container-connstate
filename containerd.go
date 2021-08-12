@@ -57,15 +57,18 @@ func (d *ContainerdDriver) ListContainer(ctx context.Context) ([]Container, erro
 		for _, container := range containers {
 			receiver, err := typeurl.UnmarshalAny(container.Spec)
 			if err != nil {
-				return nil, err
+				fmt.Printf("[ERR] Unable to unmarshal container %s spec: %s\n", container.ID, err)
+				continue
 			}
 			spec, ok := receiver.(*specs.Spec)
 			if !ok {
-				return nil, fmt.Errorf("container %s spec is not a runtime spec", container.ID)
+				fmt.Printf("[ERR] Container %s spec is not a runtime spec\n", container.ID)
+				continue
 			}
 			containerPID, err := getPidFormCgroupTask(filepath.Join(d.cgroupResourcePath, spec.Linux.CgroupsPath, "tasks"))
 			if err != nil {
-				return nil, err
+				fmt.Printf("[ERR] Unable to get container %s cgroup task: %s\n", container.ID, err)
+				continue
 			}
 
 			c := Container{
