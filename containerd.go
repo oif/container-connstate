@@ -3,6 +3,7 @@ package connstate
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -65,7 +66,38 @@ func (d *ContainerdDriver) ListContainer(ctx context.Context) ([]Container, erro
 				fmt.Printf("[ERR] Container %s spec is not a runtime spec\n", container.ID)
 				continue
 			}
-			containerPID, err := getPidFormCgroupTask(filepath.Join(d.cgroupResourcePath, spec.Linux.CgroupsPath, "tasks"))
+			var cgroupTaskFilePath string
+			if segments, isSystemdCgroupStyle := IsSystemdCgroupPath(spec.Linux.CgroupsPath); isSystemdCgroupStyle {
+				// runc systemd cgroup path format is "slice:prefix:name".
+				podSlice := segments[0]
+				prefix := segments[1]
+				containerSlice := segments[2]
+
+				for _, parentSlice := range []string{
+					// candidates
+					// /sys/fs/cgroup/memory/kubepods.slice/kubepods-pod<podID>.slice
+					// /sys/fs/cgroup/memory/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod<podID>.slice/<prefix>-<container name>.scope/tasks
+					// /sys/fs/cgroup/memory/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod<podID>.slice/<prefix>-<container name>.scope/tasks
+
+					"kubepods.slice",
+					"kubepods.slice/kubepods-besteffort.slice",
+					"kubepods.slice/kubepods-burstable.slice",
+				} {
+					candidatePath := filepath.Join(d.cgroupResourcePath, parentSlice, podSlice, fmt.Sprintf("%s-%s.scope", prefix, containerSlice), "tasks")
+					_, err := os.Stat(candidatePath)
+					if err == nil {
+						cgroupTaskFilePath = candidatePath
+						break
+					}
+				}
+				if cgroupTaskFilePath == "" {
+					fmt.Printf("[ERR] Unable to find container %s cgroup task file(with Systemd Cgroup)\n", container.ID)
+					continue
+				}
+			} else {
+				cgroupTaskFilePath = filepath.Join(d.cgroupResourcePath, spec.Linux.CgroupsPath, "tasks")
+			}
+			containerPID, err := getPidFormCgroupTask(cgroupTaskFilePath)
 			if err != nil {
 				fmt.Printf("[ERR] Unable to get container %s cgroup task: %s\n", container.ID, err)
 				continue
@@ -89,4 +121,10 @@ func (d *ContainerdDriver) ListContainer(ctx context.Context) ([]Container, erro
 		}
 	}
 	return containerList, nil
+}
+
+func IsSystemdCgroupPath(containerdCgroupPath string) (segments []string, isSystemdCgroupStyle bool) {
+	// runc systemd cgroup path format is "slice:prefix:name".
+	segments = strings.Split(containerdCgroupPath, ":")
+	return segments, len(segments) == 3
 }
