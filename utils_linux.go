@@ -3,7 +3,6 @@ package connstate
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"strconv"
@@ -49,12 +48,14 @@ func diagTCPStatistics(family uint8) (*TCPStatistics, error) {
 // In case of success, the caller is expected to execute the returned function
 // at the end of the code that needs to be executed in the network namespace.
 // Example:
-// func jobAt(...) error {
-//      d, err := executeInNetns(...)
-//      if err != nil { return err}
-//      defer d()
-//      < code which needs to be executed in specific netns>
-//  }
+//
+//	func jobAt(...) error {
+//	     d, err := executeInNetns(...)
+//	     if err != nil { return err}
+//	     defer d()
+//	     < code which needs to be executed in specific netns>
+//	 }
+//
 // Shadow from netns package
 func executeInNetns(newNs, curNs netns.NsHandle) (func(), error) {
 	var (
@@ -96,7 +97,7 @@ func executeInNetns(newNs, curNs netns.NsHandle) (func(), error) {
 
 // Copy from netns
 func findCgroupMountpoint(cgroupType string) (string, error) {
-	output, err := ioutil.ReadFile("/proc/mounts")
+	output, err := os.ReadFile("/proc/mounts")
 	if err != nil {
 		return "", err
 	}
