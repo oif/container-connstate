@@ -126,14 +126,13 @@ func getPidFormCgroupTask(filename string) (int, error) {
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
+	if scanner.Scan() {
+		// Get first line
 		task := scanner.Text()
 		PID, err = strconv.Atoi(task)
 		if err != nil {
 			return PID, fmt.Errorf("invalid pid '%s': %s", task, err)
 		}
-		// Read the first PID
-		break
 	}
 	if err = scanner.Err(); err != nil {
 		return PID, err
