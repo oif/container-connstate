@@ -21,9 +21,14 @@ func diagTCPInfo(family uint8) ([]TCPState, error) {
 	var list []TCPState
 	for _, i := range res {
 		if i.InetDiagMsg != nil {
-			list = append(list, TCPState{
+			state := TCPState{
 				Socket: *i.InetDiagMsg,
-			})
+			}
+			if i.TCPInfo != nil {
+				state.TXBytes = i.TCPInfo.Bytes_sent
+				state.RXBytes = i.TCPInfo.Bytes_received
+			}
+			list = append(list, state)
 		}
 	}
 	return list, nil
@@ -67,10 +72,10 @@ func executeInNetns(newNs, curNs netns.NsHandle) (func(), error) {
 	restore := func() {
 		// order matters
 		if moveBack != nil {
-			moveBack(curNs)
+			_ = moveBack(curNs)
 		}
 		if closeNs != nil {
-			closeNs()
+			_ = closeNs()
 		}
 		if unlockThd != nil {
 			unlockThd()

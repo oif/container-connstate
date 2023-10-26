@@ -7,7 +7,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/oif/container-connstate"
+	connstate "github.com/oif/container-connstate"
 
 	"github.com/containerd/containerd"
 )
@@ -42,7 +42,8 @@ func main() {
 		fmt.Printf("\t Annotations %v\n", container.Annotations)
 		fmt.Println("\t Connections")
 		for _, connection := range append(container.IPv4, container.IPv6...) {
-			fmt.Printf("\t%v %s\n", connection.Socket.ID, connstate.GetReadableState(connection.Socket.State))
+			fmt.Printf("\t%v %s tx: %d rx: %d\n", connection.Socket.ID,
+				connstate.GetReadableState(connection.Socket.State), connection.TXBytes, connection.RXBytes)
 		}
 	}
 

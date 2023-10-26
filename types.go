@@ -73,7 +73,9 @@ func (s TCPStatistics) CountByState() map[uint8]uint64 {
 type TCPStates []TCPState
 
 type TCPState struct {
-	Socket netlink.Socket
+	Socket  netlink.Socket
+	TXBytes uint64
+	RXBytes uint64
 }
 
 // Return false if wanna bypass
