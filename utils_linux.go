@@ -47,7 +47,7 @@ func diagTCPStatistics(family uint8) (*TCPStatistics, error) {
 	return statistics, nil
 }
 
-// executeInNetns sets execution of the code following this call to the
+// EnterNetNS sets execution of the code following this call to the
 // network namespace newNs, then moves the thread back to curNs if open,
 // otherwise to the current netns at the time the function was invoked
 // In case of success, the caller is expected to execute the returned function
@@ -55,14 +55,14 @@ func diagTCPStatistics(family uint8) (*TCPStatistics, error) {
 // Example:
 //
 //	func jobAt(...) error {
-//	     d, err := executeInNetns(...)
+//	     d, err := EnterNetNS(...)
 //	     if err != nil { return err}
 //	     defer d()
 //	     < code which needs to be executed in specific netns>
 //	 }
 //
 // Shadow from netns package
-func executeInNetns(newNs, curNs netns.NsHandle) (func(), error) {
+func EnterNetNS(newNs, curNs netns.NsHandle) (func(), error) {
 	var (
 		err       error
 		moveBack  func(netns.NsHandle) error

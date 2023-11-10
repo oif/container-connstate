@@ -1,3 +1,4 @@
+//go:build !linux
 // +build !linux
 
 package connstate
@@ -14,7 +15,7 @@ func getPidFormCgroupTask(_ string) (int, error) {
 	return 0, ErrNotImplementYet
 }
 
-func executeInNetns(_, _ netns.NsHandle) (func(), error) {
+func EnterNetNS(_, _ netns.NsHandle) (func(), error) {
 	return nil, ErrNotImplementYet
 }
 
